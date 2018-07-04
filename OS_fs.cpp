@@ -3,13 +3,28 @@
 
 /**
 *	Copyright 2018, Alec Chen
-*	All Rights Reserved. 
+*	All Rights Reserved.
 *	20154479 1506
 *	acytoo@gmail.com
 *	2018年7月3日15点00分
 */
 
 //#include "stdafx.h"
+
+
+/*
+* 	int fseek ( FILE * stream, long int offset, int origin );
+*	SEEK_SET	Beginning of file
+*	SEEK_CUR	Current position of the file pointer
+*	SEEK_END	End of file *
+
+*	size_t fread ( void * ptr, size_t size, size_t count, FILE * stream );
+
+*/
+
+
+
+
 #define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <stdio.h>
@@ -19,7 +34,7 @@
 
 using namespace std;
 
-//since these code is written in c++. DO NOT USE DEFINE, use const instead. 
+//since these code is written in c++. DO NOT USE DEFINE, use const instead.
 
 const unsigned short BLOCK_SIZE = 512;		/*size of a block*/
 const unsigned short SYS_OPEN_FILE = 40;	/*max number of system-open files*/
@@ -98,7 +113,7 @@ userPsw users;							/*user infomation*/
 unsigned short userID = ACCOUNT_NUM;	/*curent logged in user*/
 char userName[USER_NAME_LENGTH + 6];	/*6: the length of your 'pc' name*/
 directory currentDirectory;
-char ab_dir[100][14];					/*current folder stack*/
+char whole_disk_empty[100][14];					/*current folder stack, initial all this space to 0 at the beginning*/
 unsigned short dir_pointer;
 
 void find_free_block(unsigned int &inode_number) {
@@ -166,7 +181,7 @@ void recycle_block(unsigned int &inode_number) {
 *	format the disk, erase all the data stored in our disk
 *	if the program run on a brand new machine, call this function
 */
-bool format() {
+bool initDisk() {
 	/*
 	*	1. Create a empty file to emulate the file system.
 	*/
@@ -256,7 +271,7 @@ bool format() {
 	fread(stack, sizeof(unsigned int) * 51, 1, file);
 	fseek(file, DATA_START + 511 * BLOCK_SIZE, SEEK_SET);
 	fread(stack, sizeof(unsigned int) * 51, 1, file);
-        
+
 
 
 	/*
@@ -345,9 +360,30 @@ bool format() {
 
 /*
 *	mount the virtual disk when we boot up
-*
+*	if everything is right, return true
 */
-bool mount() { return false; }
+bool mount() {
+	virtualDisk = fopen("./VirtualDisk.yt", "rb+");
+	if (virtualDisk == NULL) {
+		/*stupid error, I don't think this kind if situation would happen, but I'll write it*/
+		printf("mount disk failed in mount functionn\n");
+		return false;
+	}
+	/*first read the superBlock, bitmaps, userinfo, current directory*/
+	fseek(virtualDisk, BLOCK_SIZE, SEEK_SET);
+	fread(&superBlock, sizeof(superBlock), 1, virtualDisk);
+
+	fseek(virtualDisk, 2 * BLOCK_SIZE, SEEK_SET);
+	fread(inode_bitmap, sizeof(unsigned int) * INODE_NUM, 1, virtualDisk);
+
+	fseek(virtualDisk, DATA_START, SEEK_SET);
+	fread(&currentDirectory, sizeof(directory), 1, virtualDisk);
+
+	fseek(file, DATA_START + BLOCK_SIZE, SEEK_SET);
+	fread(&users, sizeof(userPsw), 1, virtualDisk);
+
+	return true;
+}
 
 /**
 *	every time we boot up or log out, we need to login to operate out file system
@@ -412,13 +448,14 @@ bool load() { return false; }
 bool vim() { return false; }
 
 /*
-*	list all the file(folders) with detail infomation 
+*	list all the file(folders) with detail infomation
 */
 bool lla() { return false; }
 
 /*
 *	exit su, exit program
 */
+
 bool exit() { return false; }
 
 
@@ -437,13 +474,53 @@ bool exit() { return false; }
 
 
 
-
+void simulation_start() {
+	mount();
+	/**
+	* may be a acytoo in the future
+	*/
+	printf("started\n");
+}
 
 
 
 
 
 int main() {
+	memset(whole_disk_empty, 0, sizeof(whole_disk_empty));/*initial the work space, set all the bits on our disk to 0*/
+	dir_pointer = 0;
+	/*read the file, if the file not exist, then we init the disk for the first use*/
+	FILE* virtualDisk = open("VirtualDisk.yt", "r");
+	if (virtualDisk == NULL) {
+		printf("Virtual Disk not exist, initial disk now!");
+		initDisk();
+	}
+	/*if the 'disk' exist, then we can start the simulation, mount the disk and display some infomation*/
+	simulation_start();
+
+	/*login to operate*/
+ 	String username;
+	String password;
+	cin >> username;
+	cin >> password;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     return 0;
 }
-
