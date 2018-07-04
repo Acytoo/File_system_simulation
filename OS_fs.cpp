@@ -40,7 +40,7 @@ const unsigned short MAX_PERMISSION = 511;	/*the max permission of a file, no 77
 const unsigned short MAX_OWNER_PERMISSION = 448;
 
 /*
-permissions, these shift expression not working on ARM machine
+    permissions, these shift expression not working on ARM machine
 */
 const unsigned short ELSE_E = 1;
 const unsigned short ELSE_W = 1 << 1;
@@ -210,7 +210,7 @@ bool format() {
 	fseek(file, 2 * BLOCK_SIZE, SEEK_SET);
 	fwrite(inode_bitmap, sizeof(unsigned short) * INODE_NUM, 1, file);
 
-	//成组连接
+	//成组链接
 	unsigned int stack[51];
 	for (int i = 0; i < BLOCK_NUM / 50; i++) {
 		memset(stack, 0, sizeof(stack));
@@ -256,6 +256,7 @@ bool format() {
 	fread(stack, sizeof(unsigned int) * 51, 1, file);
 	fseek(file, DATA_START + 511 * BLOCK_SIZE, SEEK_SET);
 	fread(stack, sizeof(unsigned int) * 51, 1, file);
+        
 
 
 	/*
@@ -359,7 +360,7 @@ bool login(const char* user, const char* passwd) { return false; }
 bool logout(const char* user) { return false; }
 
 /**
-*touch a file, to create an empty file
+*       touch a file, to create an empty file
 */
 bool touch() { return false; }
 
