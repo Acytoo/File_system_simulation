@@ -27,15 +27,16 @@
 
 using namespace std;
 
-UserTab  user_tab;       // 10user
-Dir 	dir_table[MaxDirNum];//将当前目录文件的内容都载入内存
-int 	dir_num;//相应编号的目录项数
-int	 	inode_num;//当前目录的inode编号
-FILE*	Disk;
-Inode 	curr_inode;//当前目录的inode结构
+UserTab     user_tab;       // 10user
+Dir         dir_table[MaxDirNum];//将当前目录文件的内容都载入内存
+int         dir_num;//相应编号的目录项数
+int         inode_num;//当前目录的inode编号
+FILE*       Disk;
+Inode       curr_inode;//当前目录的inode结构
 SuperBlk	super_blk;//文件系统的超级块
-FILETIME BuffModifyTimeBeforeEdit;
-FILETIME BuffModifyTimeAfterEdit;
+FILETIME    BuffModifyTimeBeforeEdit;
+FILETIME    BuffModifyTimeAfterEdit;
+char        dir_content[TempLength][NameLength + 11];   //10 for :/file.png and 1 for '\0'
 
 //char*	command[] = { "mkfs","q","mkdir","rmdir","cd","ls","touch","rm","vi",
 //                      "cp","mv", "stat", "chmod", "zip", "unzip", "man", "df", "ps"};
@@ -48,7 +49,7 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     MainWindow w;
     content c;
-    QObject::connect(&w,SIGNAL(showmain()),&c,SLOT(re()));
+    QObject::connect(&w,SIGNAL(showmain(QString)),&c,SLOT(re(QString)));
     w.setStyleSheet("QMainWindow {background: 'white';}");
     w.show();
     //c.show();
@@ -65,6 +66,7 @@ int main(int argc, char *argv[])
     if (init_fs()){
         cout << "init fs success" << endl;
     }
+
     //fclose(Disk);
 
 

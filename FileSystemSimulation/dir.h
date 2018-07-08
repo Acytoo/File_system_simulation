@@ -16,8 +16,6 @@ int remove_file(int inode, char* name, int deepth, int type);//删除子目录�
 int enter_child_dir(int, char*);//进入子目录
 int enter_dir(const char* name);//进入任意目录
 int adjust_dir(char*);//删除子目录后，调整原目录，使中间无空隙
-void color(const unsigned short color1);//设置输出字符颜色
-
-std::string ls_dir(int inode);   //ui
-
+std::string ls_dir(int);   //ui
+int ls_dir_v2(int);
 #endif

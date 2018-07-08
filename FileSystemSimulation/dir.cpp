@@ -15,13 +15,14 @@
 
 using namespace std;
 
-extern Dir 	dir_table[MaxDirNum];//将当前目录文件的内容都载入内存
-extern int 	dir_num;//相应编号的目录项数
+extern Dir      dir_table[MaxDirNum];//将当前目录文件的内容都载入内存
+extern int      dir_num;//相应编号的目录项数
 extern int	 	inode_num;//当前目录的inode编号
 extern Inode 	curr_inode;//当前目录的inode结构
 extern SuperBlk	super_blk;//文件系统的超级块
 extern FILE*	Disk;
-extern char	path[40];
+extern char     path[40];
+extern char     dir_content[TempLength][NameLength + 11];   //10 for :/file.png and 1 for '\0'
 
 int open_dir(int inode)
 {
@@ -189,6 +190,81 @@ int make_file(int inode, char* name, int type)
     open_dir(inode_num);
     return 0;
 }
+/**
+ * @brief ls_dir
+ * @param inode
+ * @return string: "icon_name$item_name&icon_name$item_name" or "err"
+ */
+string ls_dir(int inode)
+{
+    cout << "start show dir " << endl;
+    int i;
+    Inode temp;
+    fseek(Disk, InodeBeg + sizeof(Inode)*inode, SEEK_SET);
+    fread(&temp, sizeof(Inode), 1, Disk);
+
+    string icon_folder = ":/folder.png";
+    string icon_file = ":/file.png";
+    string str_content = "";
+
+    if (temp.access[0] == 0) { //目录无读写权限
+        //printf("ls: cannot open directory .: Permission denied\n");
+        return "err";
+    }
+    for (i = 0; i<dir_num; ++i) {
+        int inode_tmp = check_name(inode_num, dir_table[i].name);
+        Inode tempInode;
+        fseek(Disk, InodeBeg + sizeof(Inode)*inode_tmp, SEEK_SET);
+        fread(&tempInode, sizeof(Inode), 1, Disk);
+
+        if (type_check(dir_table[i].name) == Directory) {
+            //printf("%s\t", dir_table[i].name);
+            cout << "dir: " << string(dir_table[i].name) << endl;
+            str_content += icon_folder + "$" + string(dir_table[i].name) + "&";
+        } else {
+            cout << "file: " << string(dir_table[i].name) << endl;
+            str_content += icon_file + "$" + string(dir_table[i].name) + "&";
+        }
+    }
+    return str_content;
+}
+
+/**
+ * @brief ls_dir_v2
+ * @param inode
+ * @return the number of content in that directory or 0 stat that there is no such dir
+ */
+
+int ls_dir_v2(int inode)
+{
+    int i;
+    Inode temp;
+    const char* icon_folder = ":/fold.png";
+    const char* icon_file = ":/file.png";
+    fseek(Disk, InodeBeg + sizeof(Inode)*inode, SEEK_SET);
+    fread(&temp, sizeof(Inode), 1, Disk);
+
+    if (temp.access[0] == 0) { //目录无读写权限
+        return 0;
+    }
+    for (i = 0; i<dir_num; ++i) {
+        int inode_tmp = check_name(inode_num, dir_table[i].name);
+        Inode tempInode;
+        fseek(Disk, InodeBeg + sizeof(Inode)*inode_tmp, SEEK_SET);
+        fread(&tempInode, sizeof(Inode), 1, Disk);
+
+        if (type_check(dir_table[i].name) == Directory) {
+            strcpy(dir_content[i], icon_folder);
+            strcpy(dir_content[i] + 10, dir_table[i].name); //10 : len(icon_folder)
+        } else {
+            strcpy(dir_content[i], icon_file);
+            strcpy((dir_content[i] + 10), dir_table[i].name);
+        }
+    }
+    return dir_num;
+}
+
+
 
 
 /*显示目录内容*/

@@ -43,13 +43,8 @@ void MainWindow::on_btn_login_clicked() {
         std::cout << "login successfully" << std::endl;
         ui->txt_err_message->setText("欢迎回来： " + userName);
         //emit sendUserName(userName);
-
-
-
         this->close();
-        emit showmain();
-
-
+        emit showmain(userName);
     }
     else {
         ui->txt_err_message->setText("登录失败，请重试！");

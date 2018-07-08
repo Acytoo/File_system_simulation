@@ -1,21 +1,22 @@
 #ifndef CONST_H
 #define CONST_H
-#define InodeNum		1024//i节点数目
-#define BlkNum			(80*1024)//磁盘块的数目
-#define BlkSize			1024//磁盘块大小为1K
-#define BlkPerNode		1024//每个文件包含的最大的磁盘块数目
+#define InodeNum		1024        //i节点数目
+#define BlkNum			(80*1024)   //磁盘块的数目
+#define BlkSize			1024        //磁盘块大小为1K
+#define BlkPerNode		1024        //每个文件包含的最大的磁盘块数目
 #define DISK 			"disk.txt"
-#define BUFF			"buff.txt"//读写文件时的缓冲文件
+#define BUFF			"buff.txt"  //读写文件时的缓冲文件
 
 #define UserNum         10
 #define UserNameLen     10
-#define UserPasswdLen   32      // md5 - last(1)
+#define UserPasswdLen   32          // md5 - last(1)
 #define UserTabBeg      0
 
 #define SuperBeg		sizeof(UserTab)                                    ///  0//超级块的起始地址
 #define InodeBeg		(SuperBeg + sizeof(SuperBlk))//i节点区起始地址
 #define BlockBeg		(InodeBeg+InodeNum*sizeof(Inode))//数据区起始地址
-#define MaxDirNum		(BlkPerNode*(BlkSize/sizeof(Dir)))//每个目录最大的文件数
+#define MaxDirNum		(BlkPerNode*(BlkSize/sizeof(Dir)))//每个目录最大的文件数  //1024*1024/32 =
+#define TempLength      20                                 //假设每个目录中的最大文件数。。
 #define DirPerBlk		(BlkSize/sizeof(Dir))//每个磁盘块包含的最大目录项
 #define Directory		0
 #define File			1
@@ -25,5 +26,6 @@
 #define HaffCodeLen		128//单个字符的哈夫曼编码后的最大码长
 #define ZipMagicNumber	0xA8EF1314//魔数
 #define MagicSize		sizeof(ZipMagicNumber)//魔数长度
+
 
 #endif // CONST_H

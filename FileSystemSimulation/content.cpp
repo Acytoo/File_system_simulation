@@ -2,7 +2,8 @@
 #include "ui_content.h"
 
 #include <QToolBar>
-#include<QListView>
+#include <QListView>
+#include <QMessageBox>
 
 #include <stdio.h>
 #include <string.h>
@@ -36,6 +37,7 @@ extern Inode 	curr_inode;//当前目录的inode结构
 extern SuperBlk	super_blk;//文件系统的超级块
 extern FILETIME BuffModifyTimeBeforeEdit;
 extern FILETIME BuffModifyTimeAfterEdit;
+extern char     dir_content[TempLength][NameLength + 11];   //10 for :/file.png and 1 for '\0'
 
 
 content::content(QWidget *parent) :
@@ -85,101 +87,74 @@ content::~content() {
     fclose(Disk);
 }
 
-void content::re()
+void content::re(QString userName)
 {
+    user_name->setText("Hello:  " + userName);
     this->show();
+    refresh();
 }
-
+/**
+ * @brief content::fun
+ * stupid test function for debug...
+ */
 void content::fun(){
 
 
+//    std::cout << "hello" << std::endl;
+//    int dir_content_nmu = ls_dir_v2(inode_num);
+//    std::cout << dir_content_nmu << std::endl;
 
+//    close_dir(inode_num);
+//    close_fs();//每执行完一条指令就保存一次数据
 
-
-//    /*指令集合*/
-//    char*	command[] = { "mkfs","q","mkdir","rmdir","cd","ls","touch","rm","vi",
-//                          "cp","mv", "stat", "chmod", "zip", "unzip", "man", "df", "ps"};
-//    char	path[40] = "acytoo@acytii:";
-
-//    char comm[NameLength], name[NameLength],
-//             cp_name[NameLength], mv_name[NameLength],
-//             zip_name[NameLength];
-
-//    char parameter[10];
-//    int i, quit = 0, choice;
-
-//    //Disk = fopen(DISK, "rb+");
-//    if (!Disk) {
-//        printf("open fail \n(0x0000)\n try to format a new disk\n");
-//        if (!format_new())
-//            exit(-1);
-//        printf("disk format success! you can operate your new fisk!!!\n");
-//    }
-//    format_fs();
-//    init_fs();
-
-    set_name();
-    show_dir(inode_num);
-    close_dir(inode_num);
-    close_fs();//每执行完一条指令就保存一次数据
-
-
-
-
-
-
-
-
-
-//    Disk = fopen(DISK, "rb+");
-//    init_fs();
-//    show_dir(0);
-
-    //std::cout << "hello" << std::endl;
-    //std::string res = ls_dir(0);
-    //std::cout << res << std::endl;
+    refresh();
 }
-void content::receiveUserName(QString userName) {
-    user_name->setText("hello: " + userName);
-}
+
+/**
+ * @brief content::cd_fun
+ * 在地址输入栏右键则会进入相应的目录
+ */
 
 void content::cd_fun() {
     //printf("start cd\n");
     QString qstrPath = lineEdit_path->text();
     const char* cpath = qstrPath.toStdString().c_str();
     //printf("the path is %s \n", cpath);   enter_dir(cpath)
-    if (1){
-        lineEdit_path->setText(cpath);
+    if (enter_dir(cpath) == -1){
+        //error
+        QMessageBox::about(this,"Warning!","There is no such folder\nPlease check again!");
+        return;
     }
-    else{
-        lineEdit_path->setText("no");
-    }
-
-    lineEdit_path->setText("set without if");
-    std::cout << "finall " << std::endl;
+    lineEdit_path->setText(qstrPath);
+    //std::cout << "finall " << std::endl;
+    refresh();
 
 }
 
+/**
+ * @brief content::refresh
+ * 刷新页面文件夹与文件，调用前一定要执行ls_dir_v2(inode_num）;
+ * 执行后千万千万要记得执行close
+ */
 
 void content::refresh()
 {
-//    for (;;){
+    ui->list_content->clear();
+
+    int dir_content_num = ls_dir_v2(inode_num);
+
+    for (int i=0; i<dir_content_num; i++){
         QListWidgetItem *item = new QListWidgetItem;
-        item->setText("folder");
-        item->setIcon(QIcon(":/folder.png"));
-
-        QListWidgetItem *item1 = new QListWidgetItem;
-        item1->setText("file");
-        item1->setIcon(QIcon(":/file.png"));
-
-
+        char temp_icon_name[11];
+        strncpy(temp_icon_name, dir_content[i], 10);
+        temp_icon_name[10] = '\0';
+        item->setIcon(QIcon(temp_icon_name));
+        item->setText(dir_content[i] + 10);     //10位开始是文件名开始的地方
+        //cout << string(temp_icon_name) << " " << string(dir_content[i]) << endl;
         ui->list_content->addItem(item);
-        ui->list_content->addItem(item1);
-       // break;
-//    }
-
-
-
+    }
+    close_dir(inode_num);
+    close_fs();//每执行完一条指令就保存一次数据
 }
 
 

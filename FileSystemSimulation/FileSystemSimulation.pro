@@ -27,7 +27,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    functions.cpp \
     md5.cpp \
     content.cpp \
     login.cpp \
@@ -42,7 +41,6 @@ SOURCES += \
 HEADERS += \
         mainwindow.h \
     md5.h \
-    functions.h \
     content.h \
     login.h \
     const.h \

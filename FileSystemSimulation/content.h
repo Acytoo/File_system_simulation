@@ -26,12 +26,12 @@ signals:
     void start();
 
 private slots:
-    void receiveUserName(QString);
+    //void receiveUserName(QString);
 
     //start file system simulation functions
     void cd_fun();
     void fun();
-    void re();
+    void re(QString);
 
 
 

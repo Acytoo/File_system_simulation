@@ -2,6 +2,6 @@
     <qresource prefix="/">
         <file>new.png</file>
         <file>file.png</file>
-        <file>folder.png</file>
+        <file>fold.png</file>
     </qresource>
 </RCC>
