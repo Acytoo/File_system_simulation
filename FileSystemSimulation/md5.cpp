@@ -1,10 +1,8 @@
-//#define _CRT_SECURE_NO_WARNINGS
-//#include "stdafx.h"
 #include "md5.h"
 
 
 /**
-*   https://blog.csdn.net/lee353086/article/details/50836433
+*   没有定义索引块，不需要启动，索引块为空，这里我用用户表代替索引块
 *   Alec Chen 2018年7月4日20点34分
 *   acytoo@gmail.com
 */

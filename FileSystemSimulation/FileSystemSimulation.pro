@@ -29,19 +29,35 @@ SOURCES += \
         mainwindow.cpp \
     functions.cpp \
     md5.cpp \
-    filewindow.cpp \
-    content.cpp
+    content.cpp \
+    login.cpp \
+    zip.cpp \
+    block.cpp \
+    inode.cpp \
+    fs.cpp \
+    path.cpp \
+    dir.cpp \
+    file.cpp
 
 HEADERS += \
         mainwindow.h \
     md5.h \
     functions.h \
-    filewindow.h \
-    content.h
+    content.h \
+    login.h \
+    const.h \
+    user.h \
+    fs.h \
+    dir.h \
+    block.h \
+    file.h \
+    inode.h \
+    path.h \
+    superblk.h \
+    zip.h
 
 FORMS += \
     mainwindow.ui \
-    filewindow.ui \
     content.ui
 
 DISTFILES += \

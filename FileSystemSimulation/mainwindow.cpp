@@ -1,29 +1,30 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "functions.h"
-#include "filewindow.h"
+
+#include "const.h"
+#include "inode.h"
+#include "superblk.h"
+#include "dir.h"
+#include "zip.h"
+#include "fs.h"
+#include "file.h"
+#include "block.h"
+#include "md5.h"
+#include "user.h"
+#include "login.h"
 
 #include <iostream>
 #include <string>
 #include <QMessageBox>
 
+extern content *fileManager;
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow) {
     ui->setupUi(this);
-    //init ui finished, let's init our file system
-    FILE* virtualDisk = fopen("VirtualDisk.yt", "r");
-    if (virtualDisk == NULL) {
-        //printf("Virtual Disk not exist, initial disk now!");
-        initDisk();
-    }
-    if (!mount()) {
-        QMessageBox::about(this,"warning!", "模拟文件系统的文件未能正确初始化，请关闭重试！");
-    }
 
-
-    fileManager = new content();
-    connect(this, SIGNAL(sendUserName(QString)), fileManager, SLOT(receiveUserName(QString)));
+    //fileManager = new content();
+    //connect(this, SIGNAL(sendUserName(QString)), fileManager, SLOT(receiveUserName(QString)));
 
 }
 
@@ -42,23 +43,14 @@ void MainWindow::on_btn_login_clicked() {
     if (flag){
         std::cout << "login successfully" << std::endl;
         ui->txt_err_message->setText("欢迎回来： " + userName);
-        emit sendUserName(userName);
+        //emit sendUserName(userName);
+
+        //printf("on_btn_login_clicked\n");
 
 
-        fileManager->show();
         this->close();
-
-
-
-
-
-//        filewindow myfilewindow;
-//        myfilewindow.setModal(true);
-        //this->close();
-
-        //connect(myfilewindow, SIGNAL(sendUserName(userName)))
-//        myfilewindow.exec();
-
+        emit showmain();
+        //std::cout<<"showmain"<<std::endl;
 
 
     }

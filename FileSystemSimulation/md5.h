@@ -2,7 +2,7 @@
 #define MD5_H
 
 /**
-*   https://blog.csdn.net/lee353086/article/details/50836433
+*   使用开源算法计算密码的MD5，保证不在文件系统中铭文储存密码
 *   Alec Chen 2018年7月4日20点34分
 *   acytoo@gmail.com
 */
