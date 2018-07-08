@@ -23,8 +23,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow) {
     ui->setupUi(this);
 
-    //fileManager = new content();
-    //connect(this, SIGNAL(sendUserName(QString)), fileManager, SLOT(receiveUserName(QString)));
+
 
 }
 
@@ -45,12 +44,10 @@ void MainWindow::on_btn_login_clicked() {
         ui->txt_err_message->setText("欢迎回来： " + userName);
         //emit sendUserName(userName);
 
-        //printf("on_btn_login_clicked\n");
 
 
         this->close();
         emit showmain();
-        //std::cout<<"showmain"<<std::endl;
 
 
     }

@@ -14,38 +14,18 @@
    <string>File Manager - Acytoo</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout_2">
+   <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
-     <layout class="QGridLayout" name="gridLayout" rowstretch="0" columnstretch="1,7">
-      <property name="sizeConstraint">
-       <enum>QLayout::SetDefaultConstraint</enum>
-      </property>
-      <property name="leftMargin">
-       <number>5</number>
-      </property>
-      <property name="topMargin">
-       <number>5</number>
-      </property>
-      <property name="rightMargin">
-       <number>5</number>
-      </property>
-      <property name="bottomMargin">
-       <number>5</number>
-      </property>
-      <item row="0" column="0">
-       <widget class="QListView" name="lst_function">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-       </widget>
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,7">
+      <item>
+       <widget class="QListWidget" name="list_function"/>
       </item>
-      <item row="0" column="1">
-       <widget class="QListView" name="lst_content">
-        <property name="resizeMode">
-         <enum>QListView::Adjust</enum>
+      <item>
+       <widget class="QListWidget" name="list_content">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
         </property>
        </widget>
       </item>
@@ -66,16 +46,10 @@
     <property name="title">
      <string>Menu</string>
     </property>
-    <addaction name="actionBack"/>
    </widget>
    <addaction name="menuMenu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionBack">
-   <property name="text">
-    <string>Back</string>
-   </property>
-  </action>
  </widget>
  <resources/>
  <connections/>

@@ -1,6 +1,7 @@
 #ifndef DIR_H
 #define DIR_H
-
+#include <iostream>
+#include <string>
 typedef struct {
     char name[30];//目录名
     short  inode_num;//目录对应的inode
@@ -16,5 +17,7 @@ int enter_child_dir(int, char*);//进入子目录
 int enter_dir(const char* name);//进入任意目录
 int adjust_dir(char*);//删除子目录后，调整原目录，使中间无空隙
 void color(const unsigned short color1);//设置输出字符颜色
+
+std::string ls_dir(int inode);   //ui
 
 #endif

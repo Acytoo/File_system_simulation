@@ -18,6 +18,8 @@ public:
     explicit content(QWidget *parent = 0);
     ~content();
 
+    void refresh();
+
 
 
 signals:

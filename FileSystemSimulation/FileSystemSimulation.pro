@@ -60,5 +60,7 @@ FORMS += \
     mainwindow.ui \
     content.ui
 
-DISTFILES += \
-    ../../../yt.png
+DISTFILES +=
+
+RESOURCES += \
+    resource.qrc

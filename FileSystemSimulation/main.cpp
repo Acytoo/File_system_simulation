@@ -25,6 +25,7 @@
 #include "user.h"
 #include "login.h"
 
+using namespace std;
 
 UserTab  user_tab;       // 10user
 Dir 	dir_table[MaxDirNum];//将当前目录文件的内容都载入内存
@@ -36,8 +37,8 @@ SuperBlk	super_blk;//文件系统的超级块
 FILETIME BuffModifyTimeBeforeEdit;
 FILETIME BuffModifyTimeAfterEdit;
 
-char*	command[] = { "mkfs","q","mkdir","rmdir","cd","ls","touch","rm","vi",
-                      "cp","mv", "stat", "chmod", "zip", "unzip", "man", "df", "ps"};
+//char*	command[] = { "mkfs","q","mkdir","rmdir","cd","ls","touch","rm","vi",
+//                      "cp","mv", "stat", "chmod", "zip", "unzip", "man", "df", "ps"};
 char	path[40] = "acytoo@acytii:";
 
 
@@ -54,20 +55,17 @@ int main(int argc, char *argv[])
 
 
 
-    char comm[NameLength], name[NameLength],
-             cp_name[NameLength], mv_name[NameLength],
-             zip_name[NameLength];
-        char parameter[10];
-        int i, quit = 0, choice;
-
-        Disk = fopen(DISK, "rb+");
-        if (!Disk) {
-            printf("open fail \n(0x0000)\n try to format a new disk\n");
-            if (!format_new())
-                exit(-1);
-            printf("disk format success! you can operate your new fisk!!!\n");
-        }
-        init_fs();
+    Disk = fopen(DISK, "rb+");
+    if (!Disk) {
+        printf("open fail \n(0x0000)\n try to format a new disk\n");
+        if (!format_new())
+            exit(-1);
+        printf("disk format success! you can operate your new fisk!!!\n");
+    }
+    if (init_fs()){
+        cout << "init fs success" << endl;
+    }
+    //fclose(Disk);
 
 
     return a.exec();

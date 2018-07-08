@@ -104,5 +104,5 @@ int type_check(char* name)
                         return temp.type;
                 }
         }
-        return -1;//该文件或目录不存在
+        return -1;
 }
