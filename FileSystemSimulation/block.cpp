@@ -1,6 +1,7 @@
 #include "const.h"
 #include "superblk.h"
 #include <stdio.h>
+#include <iostream>
 
 extern SuperBlk	super_blk;//文件系统的超级块
 /*申请未被使用的磁盘块*/
@@ -27,16 +28,26 @@ int free_blk(int blk_pos)
     return 0;
 }
 
-void show_disk_usage()//显示磁盘使用情况
+
+std::string get_disk_info()
 {
-    printf("Filesystem\t1K-blocks\tUsed\tAvailable\tUse%%\tMounted on\n");
-    printf("%s\t%d\t\t%d\t%d\t\t%d\t%s\n", "myFileSystem", BlkNum, super_blk.blk_used,
-        BlkNum - super_blk.blk_used, super_blk.blk_used * 100 / BlkNum, "/");
+    return "Disk:\nTotal Blocks: " + std::to_string(BlkNum) +
+            "\nUsed: " + std::to_string(super_blk.blk_used) +
+            "\nAvailable: " + std::to_string(BlkNum - super_blk.blk_used);
+
+}
+std::string get_inode_info()
+{
+    return "Inode:\nTotal Inodes: " + std::to_string(InodeNum) +
+            "\nUsed: " + std::to_string(super_blk.inode_used) +
+            "\nAvailable: " + std::to_string(InodeNum - super_blk.inode_used);
 }
 
-void show_inode_usage()//显示inode节点使用情况
-{
-    printf("Filesystem\tInodes\tIUsed\tIFree\tIUse%%\tMounted on\n");
-    printf("%s\t%d\t%d\t%d\t%d\t%s\n", "myFileSystem", InodeNum, super_blk.inode_used,
-        InodeNum - super_blk.inode_used, super_blk.inode_used * 100 / InodeNum, "/");
+int get_disk_percentage(){
+    return super_blk.blk_used * 100 / BlkNum;
 }
+int get_inode_percentage(){
+    return super_blk.inode_used * 100 / InodeNum;
+}
+
+

@@ -77,7 +77,7 @@ int split(char dst[][NameLength], char* str, const char* spl)
 }
 
 
-/*检查重命名*/
+/*检索文件*/
 int check_name(int inode, char* name)
 {
         int i;

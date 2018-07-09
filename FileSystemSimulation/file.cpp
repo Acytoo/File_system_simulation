@@ -425,51 +425,99 @@ int file_move(char* name, char* mvname)
         return 0;
 }
 
-int show_file_info(char* name)
+
+std::string get_detail(char* name)
 {
         int inode;
         Inode temp;
         char original_name_path[30];
         int original_inode = inode_num;//记录当前的inode
+        std::string str_detail = std::string(name);
 
         strcpy(original_name_path, name);
-        if (eat_path(name) == -1) {
-                printf("stat: cannot stat‘%s’: No such file or directory\n", original_name_path);
-                return -1;
-        }
 
-        inode = check_name(inode_num, name);
-        if (inode == -1) {
-                printf("stat: cannot stat '%s': No such file or directory\n", original_name_path);
-                close_dir(inode_num);
-                inode_num = original_inode;
-                open_dir(inode_num);
-                return -1;
-        }
 
         fseek(Disk, InodeBeg + sizeof(Inode)*inode, SEEK_SET);
         fread(&temp, sizeof(Inode), 1, Disk);
 
-        printf("File: '%s'\n", original_name_path);
+        str_detail += "\nSize: " + std::to_string(temp.file_size) + "\nBlocks: " + std::to_string(temp.blk_num);
+        //temp.type == Directory ? printf("type: directory\n") : printf("type: regular file\n");
 
-        printf("Size: %d\tBlocks: %d\t", temp.file_size, temp.blk_num);
-        temp.type == Directory ? printf("type: directory\n") : printf("type: regular file\n");
+        if (temp.type == Directory)
+        {
+            str_detail += "\nType: Directory";
+        }
+        else
+        {
+            str_detail += "\nType: File";
+        }
 
-        printf("Inode: %d\t", inode);
-        printf("Access: ");
-        temp.access[0] ? printf("r") : printf("-");
-        temp.access[1] ? printf("w") : printf("-");
-        temp.access[2] ? printf("x") : printf("-");
-        printf("\n");
-        printf("Access: %s", ctime(&temp.i_atime));
-        printf("Modify: %s", ctime(&temp.i_mtime));
-        printf("Change: %s", ctime(&temp.i_ctime));
+        //printf("Inode: %d\t", inode);
+        //printf("Access: xxx");
+        str_detail += "\nAccess: ";
+//        temp.access[0] ? printf("r") : printf("-");
+//        temp.access[1] ? printf("w") : printf("-");
+//        temp.access[2] ? printf("x") : printf("-");
+//        //printf("\n");
+//        printf("Access: %s", ctime(&temp.i_atime));
+//        printf("Modify: %s", ctime(&temp.i_mtime));
+//        printf("Change: %s", ctime(&temp.i_ctime));
+        str_detail += "\nAccess: " + std::string(ctime(&temp.i_atime)) + "\nModify: " + std::string(ctime(&temp.i_mtime))
+                 + "\nChange: " + std::string(ctime(&temp.i_ctime));
 
         close_dir(inode_num);
         inode_num = original_inode;
         open_dir(inode_num);
-        return 0;
+        return str_detail;
 }
+
+
+
+//int show_file_info(char* name)
+//{
+//        int inode;
+//        Inode temp;
+//        char original_name_path[30];
+//        int original_inode = inode_num;//记录当前的inode
+
+//        strcpy(original_name_path, name);
+//        if (eat_path(name) == -1) {
+//                printf("stat: cannot stat‘%s’: No such file or directory\n", original_name_path);
+//                return -1;
+//        }
+
+//        inode = check_name(inode_num, name);
+//        if (inode == -1) {
+//                printf("stat: cannot stat '%s': No such file or directory\n", original_name_path);
+//                close_dir(inode_num);
+//                inode_num = original_inode;
+//                open_dir(inode_num);
+//                return -1;
+//        }
+
+//        fseek(Disk, InodeBeg + sizeof(Inode)*inode, SEEK_SET);
+//        fread(&temp, sizeof(Inode), 1, Disk);
+
+//        printf("File: '%s'\n", original_name_path);
+
+//        printf("Size: %d\tBlocks: %d\t", temp.file_size, temp.blk_num);
+//        temp.type == Directory ? printf("type: directory\n") : printf("type: regular file\n");
+
+//        printf("Inode: %d\t", inode);
+//        printf("Access: ");
+//        temp.access[0] ? printf("r") : printf("-");
+//        temp.access[1] ? printf("w") : printf("-");
+//        temp.access[2] ? printf("x") : printf("-");
+//        printf("\n");
+//        printf("Access: %s", ctime(&temp.i_atime));
+//        printf("Modify: %s", ctime(&temp.i_mtime));
+//        printf("Change: %s", ctime(&temp.i_ctime));
+
+//        close_dir(inode_num);
+//        inode_num = original_inode;
+//        open_dir(inode_num);
+//        return 0;
+//}
 
 int change_mode(char* parameter, char* name)
 {
