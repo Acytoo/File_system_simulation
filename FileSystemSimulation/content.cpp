@@ -198,7 +198,7 @@ void content::ui_unzip()
     char ori_name[NameLength] = {'\0'};
     bool ok;
     QString temp_name = ui->list_content->currentItem()->text();
-    QString qstr_zip_name = QInputDialog::getText(this,tr("压缩"),tr("请输入压缩文件名"),QLineEdit::Normal,"un_zip_file",&ok);
+    QString qstr_zip_name = QInputDialog::getText(this,tr("解压"),tr("请输入解压文件名"),QLineEdit::Normal,"un_zip_file",&ok);
     if (ok)
     {
         strcpy(unzip_name, qstr_zip_name.toStdString().c_str());
@@ -525,7 +525,7 @@ void content::on_list_content_itemDoubleClicked(QListWidgetItem *item)
     {   //file
         if (file_edit(temp_clicked_name) != 0)
         {
-            QMessageBox::about(this,"Error!","Failed to edit file");
+            QMessageBox::about(this,"Error!","Failed to edit file： Permission denied");
         }
         close_dir(inode_num);
         close_fs();//每执行完一条指令就保存一次数据

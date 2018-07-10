@@ -344,7 +344,7 @@
    </widget>
    <widget class="QMenu" name="menuLogout">
     <property name="title">
-     <string>Log out</string>
+     <string> </string>
     </property>
    </widget>
    <addaction name="menuFile_System_Simulation"/>
