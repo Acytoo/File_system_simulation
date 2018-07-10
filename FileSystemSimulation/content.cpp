@@ -44,6 +44,11 @@ extern FILETIME BuffModifyTimeAfterEdit;
 extern char     dir_content[TempLength][NameLength + 11];   //10 for :/file.png and 1 for '\0'
 
 char    home_path[10];
+int     cut_copy = 0;
+char    paste_name[NameLength] = {'\0'};
+char    destination_path[50] = {'\0'};
+int     paste_ori_inode = 0, paste_dest_inode = 0;
+QString comp_name;
 
 content::content(QWidget *parent) :
     QMainWindow(parent),
@@ -79,21 +84,36 @@ content::content(QWidget *parent) :
 
     // set info pannel
     ui->textEdit_disk_info->setReadOnly(true);
-    ui->textEdit_disk_info->setTextColor(QColor(255, 0, 0, 137));        //r,g,b,t
+    ui->textEdit_disk_info->setTextColor(QColor(237, 137, 237, 255));        //r,g,b,t
     ui->textEdit_inode_info->setReadOnly(true);
-    ui->textEdit_inode_info->setTextColor(QColor(255, 0, 0, 137));
+    ui->textEdit_inode_info->setTextColor(QColor(237, 137, 237, 255));
 
 
 
     menu_content = new QMenu;
-    action_add_file = new QAction("新建文件", this);
-    action_add_folder = new QAction("新建文件夹", this);
-    action_del = new QAction("删除", this);
-    action_detail = new QAction("详细信息", this);
+    action_add_file = new QAction("New file", this);
+    action_add_folder = new QAction("New folder", this);
+    action_del = new QAction("Delete", this);
+    action_detail = new QAction("Properties", this);
+    action_cut = new QAction("Cut", this);
+    action_copy = new QAction("Copy", this);
+    action_paste = new QAction("Past", this);
+    action_rename = new QAction("Rename", this);
+    action_zip = new QAction("Zip", this);
+    action_unzip = new QAction("Unzip", this);
+    action_access_change = new QAction("Change permission", this);
     connect(action_add_file, SIGNAL(triggered(bool)), this, SLOT(add_file()));
     connect(action_add_folder, SIGNAL(triggered(bool)), this, SLOT(add_folder()));
     connect(action_del, SIGNAL(triggered(bool)), this, SLOT(del_adjust()));
     connect(action_detail, SIGNAL(triggered(bool)), this, SLOT(pop_detail()));
+    connect(action_cut, SIGNAL(triggered(bool)), this, SLOT(cut()));
+    connect(action_copy, SIGNAL(triggered(bool)), this, SLOT(copy()));
+    connect(action_paste, SIGNAL(triggered(bool)), this, SLOT(paste()));
+    connect(action_rename, SIGNAL(triggered(bool)), this, SLOT(rename()));
+    connect(action_access_change, SIGNAL(triggered(bool)), this, SLOT(access_change()));
+    connect(action_zip, SIGNAL(triggered(bool)), this, SLOT(ui_zip()));
+    connect(action_unzip, SIGNAL(triggered(bool)), this, SLOT(ui_unzip()));
+
 
     refresh();
 
@@ -123,12 +143,21 @@ void content::contextMenuEvent(QContextMenuEvent *event)
         if(ui->list_content->itemAt(i) != NULL) //如果有item则添加"修改"菜单 [1]*
         {
             menu_content->clear();
+            menu_content->addAction(action_rename);
             menu_content->addAction(action_del);
+            menu_content->addAction(action_copy);
+            menu_content->addAction(action_cut);
+            menu_content->addAction(action_zip);
+            menu_content->addAction(action_unzip);
+            if (comp_name == "root"){
+                menu_content->addAction(action_access_change);
+            }
             menu_content->addAction(action_detail);
         } else {
             menu_content->clear();
             menu_content->addAction(action_add_file);
             menu_content->addAction(action_add_folder);
+            menu_content->addAction(action_paste);
         }
         menu_content->exec(QCursor::pos());
 
@@ -144,6 +173,151 @@ void content::contextMenuEvent(QContextMenuEvent *event)
 
 }
 
+void content::ui_zip()
+{
+    char zip_name[NameLength] = {'\0'};
+    char ori_name[NameLength] = {'\0'};
+    bool ok;
+    QString temp_name = ui->list_content->currentItem()->text();
+    QString qstr_zip_name = QInputDialog::getText(this,tr("压缩"),tr("请输入压缩文件名"),QLineEdit::Normal,temp_name,&ok);
+    if (ok)
+    {
+        strcpy(zip_name, qstr_zip_name.toStdString().c_str());
+        strcpy(ori_name, temp_name.toStdString().c_str());
+        zip(zip_name, ori_name);
+        close_dir(inode_num);
+        close_fs();//每执行完一条指令就保存一次数据
+        refresh();
+        refresh_bulletin();
+    }
+}
+
+void content::ui_unzip()
+{
+    char unzip_name[NameLength] = {'\0'};
+    char ori_name[NameLength] = {'\0'};
+    bool ok;
+    QString temp_name = ui->list_content->currentItem()->text();
+    QString qstr_zip_name = QInputDialog::getText(this,tr("压缩"),tr("请输入压缩文件名"),QLineEdit::Normal,"un_zip_file",&ok);
+    if (ok)
+    {
+        strcpy(unzip_name, qstr_zip_name.toStdString().c_str());
+        strcpy(ori_name, temp_name.toStdString().c_str());
+        unzip(ori_name, unzip_name);
+        close_dir(inode_num);
+        close_fs();//每执行完一条指令就保存一次数据
+        refresh();
+        refresh_bulletin();
+    }
+}
+
+
+
+
+void content::access_change()
+{
+    bool ok;
+    char rule[5] = {'\0'};
+    char temp_name[NameLength] = {'\0'};
+    cout << "permission change" << endl;
+    QString access_rule = QInputDialog::getText(this,tr("更改权限"),tr("请输入权限规则"),QLineEdit::Normal,tr("-r"),&ok);
+    if (ok)
+    {
+        strcpy(rule, access_rule.toStdString().c_str());
+        strcpy(temp_name, ui->list_content->currentItem()->text().toStdString().c_str());
+        change_mode(rule, temp_name);
+        close_dir(inode_num);
+        close_fs();//每执行完一条指令就保存一次数据
+        refresh();
+        refresh_bulletin();
+    }
+
+}
+
+
+
+
+/**
+ * @brief content::cut
+ *
+ * cut_copy = 1
+ *
+ */
+void content::cut()
+{
+    cut_copy = 1;
+    paste_ori_inode = inode_num;
+    cout << "in start cut inode is " << paste_ori_inode << endl;
+    strcpy(paste_name, ui->list_content->currentItem()->text().toStdString().c_str());
+}
+
+/**
+ * @brief content::copy
+ * cut_copy = 2;
+ */
+
+void content::copy()
+{
+    cut_copy = 2;
+    paste_ori_inode = inode_num;
+    cout << "in start copy inode is " << paste_ori_inode << endl;
+    strcpy(paste_name, ui->list_content->currentItem()->text().toStdString().c_str());
+
+}
+/**
+ * @brief content::paste
+ *
+ * do sth, then cut_copy = 0
+ *
+ */
+
+
+void content::paste()
+{
+    strcpy(destination_path, lineEdit_path->text().toStdString().c_str());
+    int temp_inode = inode_num;
+    inode_num = paste_ori_inode;
+    if (cut_copy == 1)
+    {
+        //cut
+        if (file_move(paste_name, destination_path) != 0){
+            QMessageBox::about(this,"Error", "File move error!");
+        }
+
+    }
+    else
+    {
+        //copy
+        if (file_copy(paste_name, destination_path) != 0){
+            QMessageBox::about(this,"Error", "File copy error!");
+        }
+    }
+    close_dir(inode_num);
+    close_fs();//每执行完一条指令就保存一次数据
+    inode_num = temp_inode;
+    paste_ori_inode = 0;
+    refresh();
+    refresh_bulletin();
+    cut_copy = 0;
+}
+
+void content::rename()
+{
+    bool ok;
+    char old_name[NameLength] = {'\0'};
+    char new_name[NameLength] = {'\0'};
+    strcpy(old_name, ui->list_content->currentItem()->text().toStdString().c_str());
+    QString file_name = QInputDialog::getText(this,tr("重命名"),tr("请输入新文件名"),QLineEdit::Normal,tr("file_rename"),&ok);
+    if (ok)
+    {
+        strcpy(new_name, file_name.toStdString().c_str());
+        file_move(old_name, new_name);
+        close_dir(inode_num);
+        close_fs();//每执行完一条指令就保存一次数据
+        refresh();
+        refresh_bulletin();
+    }
+}
 
 
 void content::add_file(){
@@ -154,7 +328,10 @@ void content::add_file(){
         //cout << "create file " << file_name.toStdString() << endl;
         char temp[NameLength] = {'\0'};
         strcpy(temp,file_name.toStdString().c_str());
-        make_file(inode_num, temp, File);
+        if (make_file(inode_num, temp, File) == -1)
+        {
+            QMessageBox::about(this,"Error", "File already exist!");
+        }
         close_dir(inode_num);
         close_fs();//每执行完一条指令就保存一次数据
         refresh();
@@ -170,7 +347,10 @@ void content::add_folder(){
     if (ok) {
         char temp[NameLength] = {'\0'};
         strcpy(temp,folder_name.toStdString().c_str());
-        make_file(inode_num, temp, Directory);
+        if (make_file(inode_num, temp, Directory) == -1)
+        {
+            QMessageBox::about(this,"Error", "Folder already exist!");
+        }
         close_dir(inode_num);
         close_fs();//每执行完一条指令就保存一次数据
         refresh();
@@ -214,6 +394,7 @@ void content::pop_detail()
 void content::re(QString userName)
 {
     strcpy(home_path, userName.toStdString().c_str());
+    comp_name = userName;
     user_name->setText("Hello:  " + userName);
     lineEdit_path->setText("/" + userName);
     this->show();
@@ -342,9 +523,13 @@ void content::on_list_content_itemDoubleClicked(QListWidgetItem *item)
     strcpy(temp_clicked_name, original_qstr_path.toStdString().c_str());
     if (type_check(temp_clicked_name) == File)
     {   //file
-        file_edit(temp_clicked_name);
+        if (file_edit(temp_clicked_name) != 0)
+        {
+            QMessageBox::about(this,"Error!","Failed to edit file");
+        }
         close_dir(inode_num);
         close_fs();//每执行完一条指令就保存一次数据
+        refresh_bulletin();
         return;
     }
     else //因为通过双击文件名来进行操作，所以这个函数不可能遇到不存在的文件，无需考虑第三种情况
@@ -397,3 +582,30 @@ void content::refresh_bulletin()
 }
 
 
+
+void content::on_btn_format_clicked()
+{
+
+
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, tr("Are you sure ?"),
+                                        "This will erase all your data on this disk!",
+                                        QMessageBox::Yes | QMessageBox::Cancel);
+    if (reply == QMessageBox::Yes)
+    {
+        format_fs();
+        lineEdit_path->setText("/");
+        close_dir(inode_num);
+        close_fs();//每执行完一条指令就保存一次数据
+        refresh();
+        refresh_bulletin();
+    }
+
+}
+
+void content::on_btn_log_out_clicked()
+{
+    fclose(Disk);
+    this->close();
+    emit log_out();
+}

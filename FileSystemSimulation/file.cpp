@@ -85,7 +85,6 @@ int file_write(char* name)
         fread(&temp, sizeof(Inode), 1, Disk);
 
         if (temp.access[1] == 0) { //文件不可写
-                printf("%d\n", temp.access[1]);
                 return -1;
         }
 
@@ -95,24 +94,25 @@ int file_write(char* name)
         temp.file_size = 0;
 
         while (num = fread(buff, sizeof(char), BlkSize, fp)) {
-                printf("num:%d\n", num);
-                if ((blk_num = get_blk()) == -1) {
-                        printf("error:	block has been used up\n");
-                        break;
-                }
-                /*改变Inode结构的相应状态*/
-                temp.blk_identifier[temp.blk_num++] = blk_num;
-                temp.file_size += num;
-        //	printf("file_size:%d\n blocks: %d\n", temp.file_size, temp.blk_num);
-                /*将数据写回磁盘块*/
-                fseek(Disk, BlockBeg + BlkSize*blk_num, SEEK_SET);
-                fwrite(buff, sizeof(char), num, Disk);
+            std::cout << " in file write " << num << std::endl;
+            if ((blk_num = get_blk()) == -1) {
+                    std::cout << "error: get block" << std::endl;
+                    break;
+            }
+            /*改变Inode结构的相应状态*/
+            temp.blk_identifier[temp.blk_num++] = blk_num;
+            temp.file_size += num;
+
+            /*将数据写回磁盘块  blocks    */
+            fseek(Disk, BlockBeg + BlkSize*blk_num, SEEK_SET);
+            fwrite(buff, sizeof(char), num, Disk);
         }
         temp.i_mtime = time(NULL);
         temp.i_ctime = time(NULL);
 
 
         /*将修改后的Inode写回*/
+        std::cout << "blocks " << temp.blk_num << " file size " << temp.file_size << std::endl;
         fseek(Disk, InodeBeg + sizeof(Inode)*inode, SEEK_SET);
         fwrite(&temp, sizeof(Inode), 1, Disk);
 
@@ -121,10 +121,8 @@ int file_write(char* name)
         fseek(Disk, InodeBeg + sizeof(Inode)*inode, SEEK_SET);
         fread(&temp2, sizeof(Inode), 1, Disk);*/
 
-//	printf("file_size:%d\n blocks: %d\n", temp2.file_size, temp2.blk_num);
-
         fclose(fp);
-        return 1;
+        return 0;
 }
 
 int file_copy(char* name, char* cpname)
@@ -142,7 +140,7 @@ int file_copy(char* name, char* cpname)
                 return -1;
         }
         if (type_check(name) != File) {
-                printf("cp: cannot copy '%s': Not a file\n", originalNamePath);
+                printf("cp: cannot copy '%s': Not a file current indoe %d\n", originalNamePath, inode_num);
                 close_dir(inode_num);
                 inode_num = originalInode;
                 open_dir(inode_num);//返回操作前的目录位置
@@ -435,14 +433,12 @@ std::string get_detail(char* name)
         std::string str_detail = std::string(name);
 
         strcpy(original_name_path, name);
-
-
+        inode = check_name(inode_num, name);
         fseek(Disk, InodeBeg + sizeof(Inode)*inode, SEEK_SET);
         fread(&temp, sizeof(Inode), 1, Disk);
 
-        str_detail += "\nSize: " + std::to_string(temp.file_size) + "\nBlocks: " + std::to_string(temp.blk_num);
-        //temp.type == Directory ? printf("type: directory\n") : printf("type: regular file\n");
-
+        std::cout << " in get detail inode num is " << inode_num << std::endl;
+        str_detail += "\nSize: " + std::to_string(temp.file_size) + "\nBlocks: " + std::to_string(temp.file_size / BlkSize + 1);
         if (temp.type == Directory)
         {
             str_detail += "\nType: Directory";
@@ -452,18 +448,34 @@ std::string get_detail(char* name)
             str_detail += "\nType: File";
         }
 
-        //printf("Inode: %d\t", inode);
-        //printf("Access: xxx");
         str_detail += "\nAccess: ";
-//        temp.access[0] ? printf("r") : printf("-");
-//        temp.access[1] ? printf("w") : printf("-");
-//        temp.access[2] ? printf("x") : printf("-");
-//        //printf("\n");
-//        printf("Access: %s", ctime(&temp.i_atime));
-//        printf("Modify: %s", ctime(&temp.i_mtime));
-//        printf("Change: %s", ctime(&temp.i_ctime));
-        str_detail += "\nAccess: " + std::string(ctime(&temp.i_atime)) + "\nModify: " + std::string(ctime(&temp.i_mtime))
-                 + "\nChange: " + std::string(ctime(&temp.i_ctime));
+
+        if (temp.access[0])
+        {
+            str_detail += "r";
+        }
+        else
+        {
+            str_detail += "-";
+        }
+        if (temp.access[1])
+        {
+            str_detail += "w";
+        }
+        else
+        {
+            str_detail += "-";
+        }
+        if (temp.access[2])
+        {
+            str_detail += "x";
+        }
+        else
+        {
+            str_detail += "-";
+        }
+
+        str_detail += "\nAccess: " + std::string(ctime(&temp.i_atime)) + "Modify: " + std::string(ctime(&temp.i_mtime));
 
         close_dir(inode_num);
         inode_num = original_inode;
@@ -473,51 +485,6 @@ std::string get_detail(char* name)
 
 
 
-//int show_file_info(char* name)
-//{
-//        int inode;
-//        Inode temp;
-//        char original_name_path[30];
-//        int original_inode = inode_num;//记录当前的inode
-
-//        strcpy(original_name_path, name);
-//        if (eat_path(name) == -1) {
-//                printf("stat: cannot stat‘%s’: No such file or directory\n", original_name_path);
-//                return -1;
-//        }
-
-//        inode = check_name(inode_num, name);
-//        if (inode == -1) {
-//                printf("stat: cannot stat '%s': No such file or directory\n", original_name_path);
-//                close_dir(inode_num);
-//                inode_num = original_inode;
-//                open_dir(inode_num);
-//                return -1;
-//        }
-
-//        fseek(Disk, InodeBeg + sizeof(Inode)*inode, SEEK_SET);
-//        fread(&temp, sizeof(Inode), 1, Disk);
-
-//        printf("File: '%s'\n", original_name_path);
-
-//        printf("Size: %d\tBlocks: %d\t", temp.file_size, temp.blk_num);
-//        temp.type == Directory ? printf("type: directory\n") : printf("type: regular file\n");
-
-//        printf("Inode: %d\t", inode);
-//        printf("Access: ");
-//        temp.access[0] ? printf("r") : printf("-");
-//        temp.access[1] ? printf("w") : printf("-");
-//        temp.access[2] ? printf("x") : printf("-");
-//        printf("\n");
-//        printf("Access: %s", ctime(&temp.i_atime));
-//        printf("Modify: %s", ctime(&temp.i_mtime));
-//        printf("Change: %s", ctime(&temp.i_ctime));
-
-//        close_dir(inode_num);
-//        inode_num = original_inode;
-//        open_dir(inode_num);
-//        return 0;
-//}
 
 int change_mode(char* parameter, char* name)
 {
@@ -591,24 +558,24 @@ int file_edit(char* name)
         char original_name_path[30];
         int original_inode = inode_num;//记录当前的inode
         strcpy(original_name_path, name);
-        if (eat_path(name) == -1) {
-                printf("vi: cannot stat‘%s’: No such file or directory\n", original_name_path);
-                return -1;
-        }
-        if (type_check(name) == Directory) {
-                printf("vi: cannot edit '%s': Not a file\n", name);
-                close_dir(inode_num);
-                inode_num = original_inode;
-                open_dir(inode_num);
-                return -1;
-        }
-        if (type_check(name) == -1) {
-                printf("vi: cannot edit '%s': No such file\n", name);
-                close_dir(inode_num);
-                inode_num = original_inode;
-                open_dir(inode_num);
-                return -1;
-        }
+//        if (eat_path(name) == -1) {
+//                printf("vi: cannot stat‘%s’: No such file or directory\n", original_name_path);
+//                return -1;
+//        }
+//        if (type_check(name) == Directory) {
+//                printf("vi: cannot edit '%s': Not a file\n", name);
+//                close_dir(inode_num);
+//                inode_num = original_inode;
+//                open_dir(inode_num);
+//                return -1;
+//        }
+//        if (check_name(original_inode, name) == -1) {
+//                printf("vi: cannot edit '%s': No such file\n", name);
+//                close_dir(inode_num);
+//                inode_num = original_inode;
+//                open_dir(inode_num);
+//                return -1;
+//        }
 
         if (file_read(name) == -1) {//文件读取失败
                 printf("vi:cannot open‘%s’for reading: Permission denied\n", name);
@@ -668,7 +635,7 @@ int file_edit(char* name)
                 )
         {
                 printf("CreateProcess failed (%d).\n", GetLastError());
-                return 0;
+                return -1;
         }
 
         // Wait until child process exits.
@@ -680,22 +647,27 @@ int file_edit(char* name)
         Sleep(10);
         BuffModifyTimeAfterEdit = getBuffModifyTime();//buff.txt关闭后，获取buff.txt的修改时间，用来判断载入的内容在记事本中是否被修改
 
-    /*
-    dwLowDateTime
-    The low-order part of the file time.
+        /*
+        dwLowDateTime
+        The low-order part of the file time.
 
-    dwHighDateTime
-    The high-order part of the file time.
+        dwHighDateTime
+        The high-order part of the file time.
 
-    若buff.txt的修改时间没有发生变化。则载入记事本的内容没有发生改变，则不必重新写入
-    */
+        若buff.txt的修改时间没有发生变化。则载入记事本的内容没有发生改变，则不必重新写入
+        */
+
+        std::cout << " in edit "  << BuffModifyTimeBeforeEdit.dwLowDateTime << std::endl;
+
         if (BuffModifyTimeBeforeEdit.dwLowDateTime == BuffModifyTimeAfterEdit.dwLowDateTime
                 && BuffModifyTimeBeforeEdit.dwHighDateTime == BuffModifyTimeAfterEdit.dwHighDateTime) {
 
-                close_dir(inode_num);
-                inode_num = original_inode;
-                open_dir(inode_num);
-                return -1;
+            std::cout << " in edit no change, no edit "  << BuffModifyTimeBeforeEdit.dwLowDateTime << std::endl;
+
+            close_dir(inode_num);
+            inode_num = original_inode;
+            open_dir(inode_num);
+            return 0;
         }
 
         if (file_write(name) == -1) { //将数据从BUFF写入文件
@@ -783,19 +755,7 @@ int temp_file_read(char* name)//读取文件信息，生成临时文件，供进
         return 0;
 }
 
-void show_manual()//打印帮助手册
-{
-        FILE *fp = NULL;
-        fp = fopen("man.txt", "rb");
 
-        if (NULL == fp) return;
-
-        char ch;
-        while (fscanf(fp, "%c", &ch) != EOF)
-                printf("%c", ch); //从文本中读入并在控制台打印出来
-        printf("\n");
-        fclose(fp);
-}
 
 int get_file_size(char *name)
 {

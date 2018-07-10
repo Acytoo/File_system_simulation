@@ -134,7 +134,7 @@ int zip(char* zip_name, char* name)
     return 0;
 }
 
-int unzip(char* name)
+int unzip(char* name, char* unname)
 {
     char original_name_path[30];
     int original_inode = inode_num;//记录当前的inode
@@ -171,6 +171,16 @@ int unzip(char* name)
         printf("unzip:  cannot find zipfile directory in %s, it is not a zipfile\n", original_name_path);
         return -1;
     }
+
+    if (check_name(inode_num, unname) == -1) {
+        make_file(inode_num, unname, File);//创建空的解压文件
+        unzip_write(unname);//将解压后的数据写入解压文件
+    }
+    close_dir(inode_num);
+    inode_num = original_inode;
+    open_dir(inode_num);
+    return 0;
+
 
     if (check_name(inode_num, FILENAME) == -1) {
         make_file(inode_num, FILENAME, File);//创建空的解压文件

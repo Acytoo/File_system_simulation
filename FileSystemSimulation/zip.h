@@ -19,7 +19,7 @@ typedef struct Mnode//哈夫曼编码表节点
 }mapnode, *maptr;
 
 int zip(char* zip_name, char* name);//zip指令实现，文件压缩
-int unzip(char* name);//文件解压
+int unzip(char* name, char* unname);//文件解压
 void StaFrequency();//统计频率
 link CreatFreQueue();//频率队列
 link CreatHuff();//建立哈夫曼树

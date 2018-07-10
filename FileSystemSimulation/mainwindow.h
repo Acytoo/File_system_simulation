@@ -29,10 +29,11 @@ private slots:
 
     void on_input_password_returnPressed();
 
+    void re_login();
+
 private:
     Ui::MainWindow *ui;
-    //content* fileManager;
-    //QLineEdit input_password;
+
 };
 
 
